@@ -10,12 +10,12 @@
  */
 
 jobject currentObj;
-JNIEnv *currentEnv = NULL;
+JNIEnv *currentEnv = nullptr;
 
-void SigFunc(int sig_num,siginfo* info,void* ptr) {
+void SigFunc(int sig_num, siginfo *info, void *ptr) {
     // 这里判空并不代表这个对象就是安全的，因为有可能是脏内存
 
-    if (currentEnv == NULL || currentObj == NULL) {
+    if (currentEnv == nullptr || currentObj == nullptr) {
         return;
     }
     __android_log_print(ANDROID_LOG_INFO, TAG, "%d catch", sig_num);
@@ -54,27 +54,47 @@ Java_com_example_lib_1signal_SignalController_initWithSignals(JNIEnv *env, jobje
     // 注意释放内存
     jint *signalsFromJava = env->GetIntArrayElements(signals, 0);
     int size = env->GetArrayLength(signals);
+    bool needMask = false;
+
+    for (int i = 0; i < size; i++) {
+        if (signalsFromJava[i] == SIGQUIT) {
+            needMask = true;
+        }
+    }
+
     do {
+        sigset_t mask;
+        sigset_t old;
+        if (needMask) {
+            sigemptyset(&mask);
+            sigaddset(&mask, SIGQUIT);
+            if (0 != pthread_sigmask(SIG_UNBLOCK, &mask, &old)) {
+                break;
+            }
+        }
+
         struct sigaction sigc;
         //sigc.sa_handler = SigFunc;
         sigc.sa_sigaction = SigFunc;
         sigemptyset(&sigc.sa_mask);
         sigc.sa_flags = SA_SIGINFO;
 
-
-
-
         // 注册所有信号
         for (int i = 0; i < size; i++) {
             // 这里不需要旧的处理函数
-            int flag = sigaction(signalsFromJava[i], &sigc, NULL);
+            // 指定SIGKILL和SIGSTOP以外的所有信号
+            int flag = sigaction(signalsFromJava[i], &sigc, nullptr);
             if (flag == -1) {
                 __android_log_print(ANDROID_LOG_INFO, TAG, "register fail ===== signals[%d] ",
                                     i);
                 // 异常处理
                 jclass main = currentEnv->FindClass("com/example/lib_signal/SignalController");
                 jmethodID id = currentEnv->GetStaticMethodID(main, "signalError", "()V");
-                env->CallStaticVoidMethod(main,id);
+                env->CallStaticVoidMethod(main, id);
+                // 失败后需要恢复原样
+                if (needMask) {
+                    pthread_sigmask(SIG_UNBLOCK, &old, nullptr);
+                }
                 break;
             }
         }

@@ -7,7 +7,6 @@ import com.example.lib_signal.SignalController
 class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
-        SignalController(this).initWithSignals(intArrayOf(SignalConst.SIGABRT))
-
+        SignalController(this).initWithSignals(intArrayOf(SignalConst.SIGQUIT,SignalConst.SIGABRT))
     }
 }

@@ -8,9 +8,11 @@
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_signal_MainActivity_throwNativeCrash(JNIEnv *env, jobject thiz) {
-    int i = 0 / 0;
-    jstring j = (jstring) "132" + i;
-    char *name = const_cast<char *>(env->GetStringUTFChars(j, NULL));
-    __android_log_print(ANDROID_LOG_INFO, "hello", "%s", &"jni will crash"[(*name)]);
+//    int i = 0 / 0;
+//    jstring j = (jstring) "132" + i;
+//    char *name = const_cast<char *>(env->GetStringUTFChars(j, NULL));
+//    __android_log_print(ANDROID_LOG_INFO, "hello", "%s", &"jni will crash"[(*name)]);
+    // 向自身发送一个信号
+    raise(SIGQUIT);
 
 }
