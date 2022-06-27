@@ -16,6 +16,7 @@ import androidx.core.content.getSystemService
 import com.example.lib_signal.CallOnCatchSignal
 
 class MyHandler : CallOnCatchSignal {
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCatchSignal(signal: Int, context: Context) {
         // 自定义处理，比如弹出一个toast，或者更友好的交互
         Log.i("hello", "custom onCatchSignal ")
