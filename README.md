@@ -9,7 +9,7 @@ https://juejin.cn/post/7114181318644072479
 
 1.拷贝lib_signal这个module到自己的项目
 
-2.调用SignalController(context).initWithSignals 初始化想要监听的信号，参数是int数组，内容为具体的信号值，比如
+2.初始化SignalController对象，然后调用initWithSignals 初始化想要监听的信号，参数是int数组，内容为具体的信号值，比如
 
 ```
 SignalController(this).initWithSignals(intArrayOf(SignalConst.SIGQUIT,SignalConst.SIGABRT))
