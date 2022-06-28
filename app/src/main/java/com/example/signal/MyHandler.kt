@@ -21,9 +21,10 @@ class MyHandler : CallOnCatchSignal {
         // 自定义处理，比如弹出一个toast，或者更友好的交互
         Log.i("hello", "custom onCatchSignal ")
         if (checkIsANR(signal, context)) {
-            return
+            Toast.makeText(context, "自定义anr 处理", Toast.LENGTH_LONG).show()
+        }else {
+            Toast.makeText(context, "自定义native crash 处理", Toast.LENGTH_LONG).show()
         }
-        Toast.makeText(context, "自定义native crash 处理", Toast.LENGTH_LONG).show()
         val restart: Intent? =
             context.packageManager.getLaunchIntentForPackage(context.packageName)
         restart?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -46,6 +47,7 @@ class MyHandler : CallOnCatchSignal {
             val field = queue.javaClass.getDeclaredField("mMessages")
             field.isAccessible = true
             val message = field.get(queue) as Message
+            // 这里应该根据实际逻辑判断，比如在前台的话就相应的判断，比如超出5s，这里简单比较演示
             return message.`when` < SystemClock.uptimeMillis()
 
             // 可以dump这些消息
