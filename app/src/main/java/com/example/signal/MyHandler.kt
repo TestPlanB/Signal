@@ -48,7 +48,7 @@ class MyHandler : CallOnCatchSignal {
             field.isAccessible = true
             val message = field.get(queue) as Message
             // 这里应该根据实际逻辑判断，比如在前台的话就相应的判断，比如超出5s，这里简单比较演示
-            return message.`when` < SystemClock.uptimeMillis()
+            return message.`when` < SystemClock.uptimeMillis() - 5000
 
             // 可以dump这些消息
             //        val processesInErrorStates = systemService.processesInErrorState
