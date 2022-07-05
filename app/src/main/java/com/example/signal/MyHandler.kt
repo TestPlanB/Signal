@@ -17,7 +17,7 @@ import com.example.lib_signal.CallOnCatchSignal
 
 class MyHandler : CallOnCatchSignal {
     @RequiresApi(Build.VERSION_CODES.M)
-    override fun onCatchSignal(signal: Int, context: Context) {
+    override fun onCatchSignal(context: Context,signal: Int, nativeStackTrace:String) {
         // 自定义处理，比如弹出一个toast，或者更友好的交互
         Log.i("hello", "custom onCatchSignal ")
         if (checkIsANR(signal, context)) {
@@ -25,6 +25,8 @@ class MyHandler : CallOnCatchSignal {
         }else {
             Toast.makeText(context, "自定义native crash 处理", Toast.LENGTH_LONG).show()
         }
+        // 打印native堆栈
+        Toast.makeText(context, "当前native 堆栈是 $nativeStackTrace", Toast.LENGTH_LONG).show()
         val restart: Intent? =
             context.packageManager.getLaunchIntentForPackage(context.packageName)
         restart?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK)

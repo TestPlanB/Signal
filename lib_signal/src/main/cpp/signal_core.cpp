@@ -2,6 +2,8 @@
 #include <string>
 #include <signal.h>
 #include<android/log.h>
+#include "unwind-utils.h"
+
 
 #define TAG "hi_signal"
 
@@ -12,6 +14,19 @@
 jobject currentObj;
 JNIEnv *currentEnv = nullptr;
 
+//uintptr_t getPc(const ucontext_t *uc) {
+//#if (defined(__arm__))
+//    return uc->uc_mcontext.arm_pc;
+//#elif defined(__aarch64__)
+//    return uc->uc_mcontext.pc;
+//#elif (defined(__x86_64__))
+//    return uc->uc_mcontext.gregs[REG_RIP];
+//#else
+//#error "unsupport"
+//#endif
+//}
+
+
 void SigFunc(int sig_num, siginfo *info, void *ptr) {
     // 这里判空并不代表这个对象就是安全的，因为有可能是脏内存
 
@@ -21,12 +36,16 @@ void SigFunc(int sig_num, siginfo *info, void *ptr) {
     __android_log_print(ANDROID_LOG_INFO, TAG, "%d catch", sig_num);
     __android_log_print(ANDROID_LOG_INFO, TAG, "crash info pid:%d ", info->si_pid);
     jclass main = currentEnv->FindClass("com/example/lib_signal/SignalController");
-    jmethodID id = currentEnv->GetMethodID(main, "callNativeException", "(I)V");
+    jmethodID id = currentEnv->GetMethodID(main, "callNativeException", "(ILjava/lang/String;)V");
     if (!id) {
         return;
     }
-    currentEnv->CallVoidMethod(currentObj, id, sig_num);
+    jstring nativeStackTrace  = currentEnv->NewStringUTF(backtraceToLogcat().c_str());
+    currentEnv->CallVoidMethod(currentObj, id, sig_num,nativeStackTrace);
+
+    // 释放资源
     currentEnv->DeleteGlobalRef(currentObj);
+    currentEnv->DeleteLocalRef(nativeStackTrace);
 
 
 }
@@ -34,6 +53,7 @@ void SigFunc(int sig_num, siginfo *info, void *ptr) {
 extern "C" jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     jint result = -1;
     // 直接用vm进行赋值，不然不可靠
+    backtraceToLogcat();
     if (vm->GetEnv((void **) &currentEnv, JNI_VERSION_1_4) != JNI_OK) {
         return result;
     }

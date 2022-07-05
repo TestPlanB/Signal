@@ -26,14 +26,14 @@ class SignalController(private val context: Context) {
     }
 
 
-    fun callNativeException(signal: Int) {
+    fun callNativeException(signal: Int,nativeStackTrace:String) {
         Log.i("hello", "callNativeException $signal")
         var hasCustomHandler = false
 
         val load = ServiceLoader.load(CallOnCatchSignal::class.java)
         load.forEach {
             hasCustomHandler = true
-            it.onCatchSignal(signal, context)
+            it.onCatchSignal(context,signal,nativeStackTrace)
         }
 
         // context 可能为application等无任务栈的context，需要添加任务栈标记FLAG_ACTIVITY_NEW_TASK
