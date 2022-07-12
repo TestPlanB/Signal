@@ -1,26 +1,20 @@
 package com.example.signal
 
 import android.annotation.SuppressLint
-import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.os.Looper
-import android.os.Message
-import android.os.Process
-import android.os.SystemClock
+import android.os.*
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
-import androidx.core.content.getSystemService
 import com.example.lib_signal.CallOnCatchSignal
 
 class MyHandler : CallOnCatchSignal {
-    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCatchSignal(context: Context,signal: Int, nativeStackTrace:String) {
         // 自定义处理，比如弹出一个toast，或者更友好的交互
         Log.i("hello", "custom onCatchSignal ")
-        if (checkIsANR(signal, context)) {
+        val isANR = checkIsANR(signal, context)
+        Log.i("hello", "isANR: $isANR")
+        if (isANR) {
             Toast.makeText(context, "自定义anr 处理", Toast.LENGTH_LONG).show()
         }else {
             Toast.makeText(context, "自定义native crash 处理", Toast.LENGTH_LONG).show()
@@ -38,14 +32,19 @@ class MyHandler : CallOnCatchSignal {
 
     //  判断是否是anr
     @SuppressLint("DiscouragedPrivateApi")
-    @RequiresApi(Build.VERSION_CODES.M)
     private fun checkIsANR(signal: Int, context: Context): Boolean {
 //        val systemService = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
 //        val currentPid = Process.myPid()
 //        Log.i("hello", "systemService ${systemService}")
 
         try {
-            val queue = Looper.getMainLooper().queue
+            val queue = if (Looper.myLooper() == Looper.getMainLooper()) {
+                Looper.myQueue()
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                Looper.getMainLooper().queue
+            } else {
+                Looper.myQueue()
+            }
             val field = queue.javaClass.getDeclaredField("mMessages")
             field.isAccessible = true
             val message = field.get(queue) as Message
