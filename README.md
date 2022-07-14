@@ -2,6 +2,7 @@
 Android信号处理，兼容native crash 与anr，提供安全气囊方案与监控方案的基础设施，目前已添加native堆栈日志的回调，既可以当crash监控，又可以当安全气囊，开发你的脑洞吧！
 ## 详细介绍
 https://juejin.cn/post/7114181318644072479
+https://juejin.cn/post/7118609781832548383
 
 ## 使用说明
 目前还在更新中，后续会发到maven
