@@ -27,7 +27,7 @@ class SignalController(private val context: Context) {
 
 
     fun callNativeException(signal: Int,nativeStackTrace:String) {
-        Log.i("hello", "callNativeException $signal")
+        Log.i("hi_signal", "callNativeException $signal")
         var hasCustomHandler = false
 
         val load = ServiceLoader.load(CallOnCatchSignal::class.java)

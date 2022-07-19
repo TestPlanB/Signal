@@ -27,12 +27,15 @@ class MainActivity : AppCompatActivity() {
         val text2 = this.findViewById<Button>(R.id.test2)
         text2.setOnClickListener {
             // 这里只是一个死循环，需要触发尽快anr可以直接点击返回健
-            createANR()
+            createANR(text2)
         }
     }
 
     private external fun throwNativeCrash()
-    private fun createANR(){
+    private fun createANR(textView: TextView){
+        Handler(Looper.getMainLooper()).postDelayed({
+            textView.text = "test anr"
+        },3000)
         while (true){
 
         }
