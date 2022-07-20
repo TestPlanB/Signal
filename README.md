@@ -19,8 +19,8 @@ SignalController(this).initWithSignals(intArrayOf(SignalConst.SIGQUIT,SignalCons
 ```
 3.创建一个实现CallOnCatchSignal接口的类，重写onCatchSignal方法，里面是自定义的信号处理逻辑
 ```
-参数1是回调的context 参数2是崩溃时的信号值 参数3是native的堆栈日志
-onCatchSignal(context: Context,signal: Int, nativeStackTrace:String)
+参数1是回调的context 参数2是崩溃时的信号值 参数3是native的堆栈日志 参数4是java层堆栈
+onCatchSignal(context: Context,signal: Int, nativeStackTrace:String,javaStackTrace:String)
 ```
 
 4.创建一个路径为resources/META-INF/services的目录，并在目录下创建一个文件，名称为com.example.lib_signal.CallOnCatchSignal，内容为继承了
