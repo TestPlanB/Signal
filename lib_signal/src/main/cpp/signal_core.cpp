@@ -40,6 +40,7 @@ void SigFunc(int sig_num, siginfo *info, void *ptr) {
     if (!id) {
         return;
     }
+
     jstring nativeStackTrace  = currentEnv->NewStringUTF(backtraceToLogcat().c_str());
     currentEnv->CallVoidMethod(currentObj, id, sig_num,nativeStackTrace);
 
