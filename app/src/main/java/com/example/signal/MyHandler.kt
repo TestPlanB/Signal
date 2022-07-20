@@ -14,10 +14,11 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.content.getSystemService
 import com.example.lib_signal.CallOnCatchSignal
+import com.example.lib_signal.SignalConst
 
 class MyHandler : CallOnCatchSignal {
     @RequiresApi(Build.VERSION_CODES.M)
-    override fun onCatchSignal(context: Context,signal: Int, nativeStackTrace:String) {
+    override fun onCatchSignal(context: Context,signal: Int, nativeStackTrace:String,javaStackTrace:String) {
         // 自定义处理，比如弹出一个toast，或者更友好的交互
         Log.i("hello", "custom onCatchSignal ")
         if (checkIsANR(signal, context)) {
@@ -27,6 +28,10 @@ class MyHandler : CallOnCatchSignal {
         }
         // 打印native堆栈
         Toast.makeText(context, "当前native 堆栈是 $nativeStackTrace", Toast.LENGTH_LONG).show()
+        // 打印java堆栈
+        Toast.makeText(context, "java 堆栈是 $javaStackTrace", Toast.LENGTH_LONG).show()
+
+        // 重启
         val restart: Intent? =
             context.packageManager.getLaunchIntentForPackage(context.packageName)
         restart?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK)
@@ -40,9 +45,11 @@ class MyHandler : CallOnCatchSignal {
     @SuppressLint("DiscouragedPrivateApi")
     @RequiresApi(Build.VERSION_CODES.M)
     private fun checkIsANR(signal: Int, context: Context): Boolean {
-//        val systemService = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-//        val currentPid = Process.myPid()
-//        Log.i("hello", "systemService ${systemService}")
+
+        // 如果不是SIGQUIT，就不进入anr判断
+        if (signal != SignalConst.SIGQUIT) {
+            return false
+        }
 
         try {
             val queue = Looper.getMainLooper().queue

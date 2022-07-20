@@ -28,16 +28,18 @@ class SignalController(private val context: Context) {
 
     fun callNativeException(signal: Int,nativeStackTrace:String) {
         Log.i("hi_signal", "callNativeException $signal")
-        var hasCustomHandler = false
+        // 获取java堆栈
+        val javaStackTrace = Log.getStackTraceString(Throwable())
 
+        var hasCustomHandler = false
         val load = ServiceLoader.load(CallOnCatchSignal::class.java)
         load.forEach {
             hasCustomHandler = true
-            it.onCatchSignal(context,signal,nativeStackTrace)
+            it.onCatchSignal(context,signal,nativeStackTrace,javaStackTrace)
         }
 
         // context 可能为application等无任务栈的context，需要添加任务栈标记FLAG_ACTIVITY_NEW_TASK
-        // 默认处理
+        // 默认处理 重启app 到主页
         if (!hasCustomHandler) {
             val killIntent: Intent? =
                 context.packageManager.getLaunchIntentForPackage(context.packageName)
