@@ -5,7 +5,11 @@ https://juejin.cn/post/7114181318644072479
 https://juejin.cn/post/7118609781832548383
 
 ## 使用说明
-目前还在更新中，后续会发到maven
+已发布到mavencenter仓库
+gradle 导入
+```
+implementation 'io.github.TestPlanB:signal:1.0.0-beta'
+```
 ### 本地使用
 该项目可以用于本地配置使用，只需拷贝lib_signal这个module到自己的项目即可，请按照以下条件使用
 
