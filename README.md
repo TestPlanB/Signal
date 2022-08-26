@@ -18,7 +18,7 @@ implementation 'io.github.TestPlanB:signal:1.0.0-beta'
 2.初始化SignalController对象，然后调用initWithSignals 初始化想要监听的信号，参数是int数组，内容为具体的信号值，比如
 
 ```
-SignalController(this).initWithSignals(intArrayOf(SignalConst.SIGQUIT,SignalConst.SIGABRT))
+SignalController(this).initSignal(intArrayOf(SignalConst.SIGQUIT,SignalConst.SIGABRT))
 
 ```
 3.创建一个实现CallOnCatchSignal接口的类，重写onCatchSignal方法，里面是自定义的信号处理逻辑
