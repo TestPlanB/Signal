@@ -6,6 +6,7 @@
 
 
 #define TAG "hi_signal"
+#define SIGNAL_CRASH_STACK_SIZE (1024 * 128)
 
 /**
  * author : TestPlanB
@@ -28,6 +29,7 @@ JNIEnv *currentEnv = nullptr;
 
 
 void SigFunc(int sig_num, siginfo *info, void *ptr) {
+
     // 这里判空并不代表这个对象就是安全的，因为有可能是脏内存
 
     if (currentEnv == nullptr || currentObj == nullptr) {
@@ -49,6 +51,13 @@ void SigFunc(int sig_num, siginfo *info, void *ptr) {
     currentEnv->DeleteLocalRef(nativeStackTrace);
 
 
+}
+// 统一处理异常
+void Handle_Exception(){
+    // 异常处理
+    jclass main = currentEnv->FindClass("com/example/lib_signal/SignalController");
+    jmethodID id = currentEnv->GetStaticMethodID(main, "signalError", "()V");
+    currentEnv->CallStaticVoidMethod(main, id);
 }
 
 extern "C" jint JNI_OnLoad(JavaVM *vm, void *reserved) {
@@ -86,6 +95,19 @@ Java_com_example_lib_1signal_SignalController_initWithSignals(JNIEnv *env, jobje
     do {
         sigset_t mask;
         sigset_t old;
+        // 这里需要stack_t，临时的栈，因为SIGSEGV时，当前栈空间已经是处于进程所能控制的栈中，此时就不能在这个栈里面操作，否则就会异常循环
+        stack_t ss;
+        if(NULL == (ss.ss_sp = calloc(1, SIGNAL_CRASH_STACK_SIZE))){
+            Handle_Exception();
+            break;
+        }
+        ss.ss_size  = SIGNAL_CRASH_STACK_SIZE;
+        ss.ss_flags = 0;
+        if(0 != sigaltstack(&ss, NULL)) {
+            Handle_Exception();
+            break;
+        }
+
         if (needMask) {
             sigemptyset(&mask);
             sigaddset(&mask, SIGQUIT);
@@ -94,11 +116,13 @@ Java_com_example_lib_1signal_SignalController_initWithSignals(JNIEnv *env, jobje
             }
         }
 
+
         struct sigaction sigc;
         //sigc.sa_handler = SigFunc;
         sigc.sa_sigaction = SigFunc;
         sigemptyset(&sigc.sa_mask);
-        sigc.sa_flags = SA_SIGINFO;
+        sigc.sa_flags = SA_SIGINFO| SA_ONSTACK;
+
 
         // 注册所有信号
         for (int i = 0; i < size; i++) {
@@ -108,10 +132,7 @@ Java_com_example_lib_1signal_SignalController_initWithSignals(JNIEnv *env, jobje
             if (flag == -1) {
                 __android_log_print(ANDROID_LOG_INFO, TAG, "register fail ===== signals[%d] ",
                                     i);
-                // 异常处理
-                jclass main = currentEnv->FindClass("com/example/lib_signal/SignalController");
-                jmethodID id = currentEnv->GetStaticMethodID(main, "signalError", "()V");
-                env->CallStaticVoidMethod(main, id);
+                Handle_Exception();
                 // 失败后需要恢复原样
                 if (needMask) {
                     pthread_sigmask(SIG_UNBLOCK, &old, nullptr);
