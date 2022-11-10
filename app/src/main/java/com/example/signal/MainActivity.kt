@@ -23,6 +23,14 @@ class MainActivity : AppCompatActivity() {
             throwNativeCrash()
         }
 
+        // crash 在其他线程，协程也同样适用
+        val text3 = this.findViewById<Button>(R.id.test3)
+        text3.setOnClickListener {
+            Thread{
+                throwNativeCrash()
+            }.start()
+        }
+
         // anr
         val text2 = this.findViewById<Button>(R.id.test2)
         text2.setOnClickListener {

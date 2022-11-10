@@ -12,8 +12,8 @@
  * author : TestPlanB
  */
 
-jobject currentObj;
 JNIEnv *currentEnv = nullptr;
+JavaVM *javaVm = nullptr;
 
 //uintptr_t getPc(const ucontext_t *uc) {
 //#if (defined(__arm__))
@@ -31,23 +31,19 @@ JNIEnv *currentEnv = nullptr;
 void SigFunc(int sig_num, siginfo *info, void *ptr) {
 
     // 这里判空并不代表这个对象就是安全的，因为有可能是脏内存
-
-    if (currentEnv == nullptr || currentObj == nullptr) {
-        return;
-    }
     __android_log_print(ANDROID_LOG_INFO, TAG, "%d catch", sig_num);
     __android_log_print(ANDROID_LOG_INFO, TAG, "crash info pid:%d ", info->si_pid);
+    if (javaVm->GetEnv((void **) &currentEnv, JNI_VERSION_1_4) != JNI_OK) {
+        return ;
+    }
+
     jclass main = currentEnv->FindClass("com/example/lib_signal/SignalController");
-    jmethodID id = currentEnv->GetMethodID(main, "callNativeException", "(ILjava/lang/String;)V");
+    jmethodID id = currentEnv->GetStaticMethodID(main, "callNativeException", "(ILjava/lang/String;)V");
     if (!id) {
         return;
     }
-
     jstring nativeStackTrace  = currentEnv->NewStringUTF(backtraceToLogcat().c_str());
-    currentEnv->CallVoidMethod(currentObj, id, sig_num,nativeStackTrace);
-
-    // 释放资源
-    currentEnv->DeleteGlobalRef(currentObj);
+    currentEnv->CallStaticVoidMethod(main, id,sig_num,nativeStackTrace);
     currentEnv->DeleteLocalRef(nativeStackTrace);
 
 
@@ -67,6 +63,7 @@ extern "C" jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     if (vm->GetEnv((void **) &currentEnv, JNI_VERSION_1_4) != JNI_OK) {
         return result;
     }
+    javaVm = vm;
     return JNI_VERSION_1_4;
 }
 
@@ -77,10 +74,8 @@ JNIEXPORT void JNI_OnUnload(JavaVM *vm, void *reserved) {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_lib_1signal_SignalController_initWithSignals(JNIEnv *env, jobject thiz,
+Java_com_example_lib_1signal_SignalController_initWithSignals(JNIEnv *env, jclass klass,
                                                               jintArray signals) {
-    // 必须生成全局变量，直接赋值的话只是局部变量，被回收后存在脏变量风险
-    currentObj = env->NewGlobalRef(thiz);
     // 注意释放内存
     jint *signalsFromJava = env->GetIntArrayElements(signals, 0);
     int size = env->GetArrayLength(signals);

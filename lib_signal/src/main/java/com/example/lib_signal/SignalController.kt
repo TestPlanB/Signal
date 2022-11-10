@@ -1,5 +1,6 @@
 package com.example.lib_signal
 
+import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.os.Process
@@ -13,49 +14,47 @@ import java.util.*
 
 
 @Keep
-class SignalController(private val context: Context) {
+object SignalController {
+    private var application: Application? = null
 
-    companion object {
-        init {
-            System.loadLibrary("keep-signal")
-        }
+    init {
+        System.loadLibrary("keep-signal")
+    }
 
-        @JvmStatic
-        fun signalError() {
-            throw SignalException()
-        }
+    @JvmStatic
+    fun signalError() {
+        throw SignalException()
     }
 
 
+    @JvmStatic
     fun callNativeException(signal: Int, nativeStackTrace: String) {
         Log.i("hi_signal", "callNativeException $signal")
         // 获取java堆栈
         val javaStackTrace = Log.getStackTraceString(Throwable())
-        var hasCustomHandler = false
+        Log.i("hi_signal", "javaStackTrace")
         val load = ServiceLoader.load(CallOnCatchSignal::class.java)
+        Log.i("hi_signal", "load")
         load.forEach {
-            hasCustomHandler = true
-            it.onCatchSignal(context, signal, nativeStackTrace, javaStackTrace)
+            application?.let { it1 ->
+                it.onCatchSignal(
+                    it1,
+                    signal,
+                    nativeStackTrace,
+                    javaStackTrace
+                )
+            }
         }
 
-        // context 可能为application等无任务栈的context，需要添加任务栈标记FLAG_ACTIVITY_NEW_TASK
-        // 默认处理 重启app 到主页
-        if (!hasCustomHandler) {
-            val killIntent: Intent? =
-                context.packageManager.getLaunchIntentForPackage(context.packageName)
-            killIntent?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-            killIntent?.action = "restart"
-            context.startActivity(killIntent)
-            Process.killProcess(Process.myPid())
-            System.exit(0)
-        }
     }
 
-    fun initSignal(signals: IntArray) {
+    @JvmStatic
+    fun initSignal(signals: IntArray, application: Application) {
+        this.application = application
         initWithSignals(signals)
     }
 
-
+    @JvmStatic
     private external fun initWithSignals(signals: IntArray)
 
 
