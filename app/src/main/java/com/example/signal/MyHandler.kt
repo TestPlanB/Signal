@@ -1,24 +1,14 @@
 package com.example.signal
 
 import android.annotation.SuppressLint
-import android.app.ActivityManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
-import android.os.Handler
-import android.os.Looper
-import android.os.Message
-import android.os.Process
-import android.os.SystemClock
+import android.os.*
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
-import androidx.core.content.getSystemService
 import com.example.lib_signal.CallOnCatchSignal
 import com.example.lib_signal.SignalConst
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 class MyHandler : CallOnCatchSignal {
     @RequiresApi(Build.VERSION_CODES.M)
