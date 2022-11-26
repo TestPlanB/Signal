@@ -21,11 +21,15 @@ class MyHandler : CallOnCatchSignal {
         // 自定义处理，比如弹出一个toast，或者更友好的交互
         Log.i("hello", "custom onCatchSignal ")
 
-        if (checkIsANR(signal)) {
-            Toast.makeText(context, "自定义anr 处理", Toast.LENGTH_LONG).show()
-        } else {
-            Toast.makeText(context, "自定义native crash 处理", Toast.LENGTH_LONG).show()
+        if(Looper.myLooper() == Looper.getMainLooper()){
+            if (checkIsANR(signal)) {
+                Toast.makeText(context, "自定义anr 处理", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(context, "自定义native crash 处理", Toast.LENGTH_LONG).show()
+            }
         }
+
+
         // 打印native堆栈
         Log.e("hello", "当前native 堆栈是 $nativeStackTrace")
 
