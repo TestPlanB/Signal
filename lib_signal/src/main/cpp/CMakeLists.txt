@@ -21,7 +21,9 @@ add_library( # Sets the name of the library.
         SHARED
 
         # Provides a relative path to your source file(s).
-        signal_core.cpp
+        signal_init.c
+        signal_action.c
+        signal_exception.c
         unwind-utils.cpp)
 
 
