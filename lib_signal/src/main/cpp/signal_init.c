@@ -11,13 +11,6 @@
 #include "errno.h"
 
 #define JNI_CLASS_NAME "com/pika/lib_signal/SignalController"
-#define XCC_UTIL_TEMP_FAILURE_RETRY(exp) ({         \
-            __typeof__(exp) _rc;                    \
-            do {                                    \
-                errno = 0;                          \
-                _rc = (exp);                        \
-            } while (_rc == -1 && errno == EINTR);  \
-            _rc; })
 
 
 JavaVM *javaVm = NULL;
@@ -30,7 +23,7 @@ static void sig_func(int sig_num, struct siginfo *info, void *ptr) {
     __android_log_print(ANDROID_LOG_INFO, TAG, "catch signal %llu %d", data,notifier);
 
     if (notifier >= 0) {
-        XCC_UTIL_TEMP_FAILURE_RETRY(write(notifier, &data, sizeof data));
+        write(notifier, &data, sizeof data);
     }
 }
 
@@ -40,7 +33,7 @@ static void* invoke_crash(void *arg){
         return NULL;
     }
     uint64_t data;
-    XCC_UTIL_TEMP_FAILURE_RETRY(read(notifier,&data,sizeof data));
+    read(notifier,&data,sizeof data);
     jmethodID id = (*env)->GetStaticMethodID(env,callClass, "callNativeException", "(ILjava/lang/String;)V");
 //    jstring nativeStackTrace  = (*env)->NewStringUTF(env,backtraceToLogcat());
     jstring nativeStackTrace = (*env)->NewStringUTF(env,"");
