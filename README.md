@@ -19,7 +19,7 @@ implementation 'io.github.TestPlanB:signal:1.0.0-beta'
 1.拷贝lib_signal这个module到自己的项目
 
 2.初始化SignalController对象，然后调用initWithSignals 初始化想要监听的信号，参数是int数组，内容为具体的信号值（如果想要监听anr，则初始化需要设置监听SIGQUIT），比如SIGQUIT，
-MyHandler是一个继承于CallOnCatchSignal的接口，可看第3点
+MyHandler是一个实现CallOnCatchSignal的类，可看第3点
 
 ```
  SignalController.initSignal(intArrayOf(
