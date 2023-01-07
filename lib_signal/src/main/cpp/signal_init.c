@@ -71,5 +71,7 @@ Java_com_pika_lib_1signal_SignalController_initWithSignals(JNIEnv *env, jclass c
     pthread_t thd;
     if(0 != pthread_create(&thd, NULL,invoke_crash, NULL)){
         handle_exception(env);
+        close(notifier);
+        notifier = -1;
     }
 }
