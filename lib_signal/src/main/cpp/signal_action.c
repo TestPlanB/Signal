@@ -50,10 +50,10 @@ void init_with_signal(JNIEnv *env, jclass klass,
 
 
         struct sigaction sigc;
-
         sigc.sa_sigaction = handler;
-        sigemptyset(&sigc.sa_mask);
-        sigc.sa_flags = SA_SIGINFO | SA_ONSTACK;
+        // 信号处理时，先阻塞所有的其他信号，避免干扰正常的信号处理程序
+        sigfillset(&sigc.sa_mask);
+        sigc.sa_flags = SA_SIGINFO | SA_ONSTACK |SA_RESTART;
 
 
         // 注册所有信号
@@ -67,7 +67,7 @@ void init_with_signal(JNIEnv *env, jclass klass,
                 handle_exception(env);
                 // 失败后需要恢复原样
                 if (needMask) {
-                    pthread_sigmask(SIG_UNBLOCK, &old, NULL);
+                    pthread_sigmask(SIG_SETMASK, &old, NULL);
                 }
                 break;
             }
